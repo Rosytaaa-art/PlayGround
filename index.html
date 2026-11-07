@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#183b37" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23356e56'/%3E%3Ctext x='16' y='23' font-size='22' text-anchor='middle' fill='%23d9f09e'%3E%E2%9C%A6%3C/text%3E%3C/svg%3E" />
   <title>Wildbound — A Pocket Creature Adventure</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=2" />
 </head>
 <body>
   <main class="app-shell">
@@ -30,7 +30,7 @@
             <div class="battle-top"><div><span class="wild-label">WILD CREATURE</span><strong id="wild-name">Mosskin</strong><small id="wild-level">LV. 3</small></div><div class="wild-hp"><div class="hp-meta"><span>HP</span><span id="wild-hp-text">20 / 20</span></div><div class="hp-track"><i id="wild-hp-fill"></i></div></div></div>
             <canvas id="battle-art" width="144" height="112"></canvas>
             <div class="battle-message" id="battle-message">A wild Mosskin appeared!</div>
-            <div class="battle-actions" id="battle-actions"><button class="battle-btn primary" id="attack-btn"><span>✦</span> Spark</button><button class="battle-btn catch" id="catch-btn"><span>◉</span> Catch <b id="capsule-count">3</b></button><button class="battle-btn" id="run-btn"><span>↗</span> Run</button></div>
+            <div class="battle-actions" id="battle-actions"><button class="battle-btn primary" id="attack-btn"><span>✦</span> <b id="attack-one">Leaf Flick</b></button><button class="battle-btn secondary-attack" id="attack-two-btn"><span>✧</span> <b id="attack-two">Vine Snare</b></button><button class="battle-btn catch" id="catch-btn"><span>◉</span> Catch <b id="capsule-count">3</b></button><button class="battle-btn" id="run-btn"><span>↗</span> Run</button></div>
             <button class="battle-btn continue-btn hidden" id="continue-btn">Continue <span>→</span></button>
           </div>
         </div>
