@@ -89,8 +89,17 @@
       if(y>=2){fill('#b9875e',x*16,y*16+14,16,2);if((x+y)%3===0)fill('#d7ad79',x*16+3,y*16+4,3,2)}
     }
     fill('#e5c994',16,32,320,8);fill('#794d43',0,40,16,216);fill('#794d43',336,40,16,216);
-    fill('#745144',6*16,7*16,10*16,16);fill('#a77650',7*16,7*16,8*16,16);
-    fill('#754936',7*16,8*16,8*16,3);fill('#bc8050',7*16+3,8*16+2,8*16-6,2);fill('#754936',7*16+8,11*16,4,3);fill('#754936',14*16-8,11*16,4,3);
+    // A sunny window, a little clock, and a shelf make the lodge feel lived in.
+    fill('#71483e',2*16-2,2,4*16+4,30);fill('#d7b778',2*16,4,4*16,26);fill('#8fc4bb',2*16+3,7,4*16-6,18);fill('#d9edca',2*16+3,7,2*16-3,18);fill('#f4d989',3*16+4,9,7,7);fill('#71483e',4*16-2,7,3,18);fill('#71483e',2*16,16,4*16,3);
+    fill('#725044',9*16,5,4,22);fill('#f2d896',9*16+2,7,1,7);fill('#f2d896',9*16+2,16,1,7);
+    fill('#765044',14*16,3*16,5*16,3);fill('#a97852',14*16+2,3*16+3,5*16-4,2);fill('#d9b979',15*16,3*16-4,5,4);fill('#d9b979',17*16,3*16-5,5,5);
+    // Potted plants and a woven rug add color without crowding the room.
+    fill('#a85848',2*16+3,8*16,10,7);fill('#d27a58',2*16+1,8*16-3,14,4);fill('#477252',2*16+5,7*16-5,3,7);fill('#6e9a5c',2*16+2,7*16-8,4,5);fill('#80a95f',2*16+8,7*16-9,5,6);
+    fill('#a85848',18*16+3,8*16,10,7);fill('#d27a58',18*16+1,8*16-3,14,4);fill('#477252',18*16+5,7*16-5,3,7);fill('#6e9a5c',18*16+2,7*16-8,4,5);fill('#80a95f',18*16+8,7*16-9,5,6);
+    fill('#8b654b',7*16,11*16,8*16,3*16);fill('#d5b77b',7*16+4,11*16+4,8*16-8,3*16-8);fill('#bd8d60',7*16+8,11*16+8,8*16-16,3*16-16);
+    // Short, sturdy table: the front apron has a matching solid collision zone.
+    fill('#745144',7*16,7*16,8*16,16);fill('#a77650',7*16+8,7*16,8*16-16,16);
+    fill('#754936',7*16,8*16,8*16,3);fill('#bc8050',7*16+3,8*16+2,8*16-6,2);fill('#754936',7*16+8,9*16,4,3);fill('#754936',15*16-12,9*16,4,3);
     starters.forEach((sp,i)=>{const x=(7.8+i*2.15)*16,y=7.25*16;fill('#e8d8a6',x,y+1,18,3);fill(sp.color,x+2,y-6,14,7);fill('#f3eee0',x+2,y-1,14,5);fill('#d9e8d5',x+2,y-6,14,5);fill(sp.dark,x+8,y-2,3,2);fill('#fff5cc',x+5,y-5,3,2)});
     fill('#533d38',10*16,14*16,2*16,16);fill('#d8ad75',10*16+4,14*16+3,2*16-8,12);fill('#8b6250',10*16+13,14*16+7,2,2);
   }
@@ -111,7 +120,7 @@
     document.getElementById('coords').textContent=String(player.x).padStart(2,'0')+' · '+String(player.y).padStart(2,'0');
     requestAnimationFrame(draw);
   }
-  function showToast(text){ui.toast.textContent=text;ui.toast.style.opacity='1';clearTimeout(toastTimer);toastTimer=setTimeout(()=>ui.toast.style.opacity='0',2600)}
+  function showToast(text){ui.toast.textContent=text;ui.toast.style.opacity='1';clearTimeout(toastTimer);toastTimer=setTimeout(()=>ui.toast.style.opacity='0',4800)}
   function drawCreature(mon){
     bctx.clearRect(0,0,144,112);const c=mon.color,d=mon.dark,l=mon.light;
     bctx.fillStyle='#72975c55';bctx.fillRect(43,91,60,8);
@@ -152,17 +161,17 @@
   function runAway(){if(!battle)return;endBattle(`You waved goodbye to ${battle.name} and continued along the trail.`,'Explore the tall grass')}
   document.getElementById('attack-btn').addEventListener('click',()=>attack(0));document.getElementById('attack-two-btn').addEventListener('click',()=>attack(1));document.getElementById('catch-btn').addEventListener('click',catchCreature);document.getElementById('run-btn').addEventListener('click',runAway);
   ui.continue.addEventListener('click',()=>{battle=null;ui.overlay.classList.add('hidden');encounterSteps=0;showToast('The meadow breeze carries you onward…')});
-  function tryMove(dir){if(battle)return;let dx=0,dy=0;if(dir==='up'){dy=-1;player.face='up'}if(dir==='down'){dy=1;player.face='down'}if(dir==='left'){dx=-1;player.face='left'}if(dir==='right'){dx=1;player.face='right'}const nx=player.x+dx,ny=player.y+dy;if(interior){if(nx<1||nx>20||ny<3||ny>14)return;player.x=nx;player.y=ny;player.step++;return}const typ=tile(nx,ny);if(typ==='tree'||typ==='water'||typ==='edge'){showToast(typ==='water'?'The pond is too deep to cross.':'A sturdy tree blocks the way.');return}player.x=nx;player.y=ny;player.step++;if(typ==='tall'){encounterSteps++;if(encounterSteps>2&&Math.random()<.17){beginBattle();return}}if(encounterSteps>=6&&typ!=='tall')encounterSteps=3;}
+  function tryMove(dir){if(battle)return;let dx=0,dy=0;if(dir==='up'){dy=-1;player.face='up'}if(dir==='down'){dy=1;player.face='down'}if(dir==='left'){dx=-1;player.face='left'}if(dir==='right'){dx=1;player.face='right'}const nx=player.x+dx,ny=player.y+dy;if(interior){if(nx<1||nx>20||ny<3||ny>14)return;if(nx>=7&&nx<=14&&ny>=7&&ny<=9)return;player.x=nx;player.y=ny;player.step++;return}const typ=tile(nx,ny);if(typ==='tree'||typ==='water'||typ==='edge'){showToast(typ==='water'?'The pond is too deep to cross.':'A sturdy tree blocks the way.');return}player.x=nx;player.y=ny;player.step++;if(typ==='tall'){encounterSteps++;if(encounterSteps>2&&Math.random()<.17){beginBattle();return}}if(encounterSteps>=6&&typ!=='tall')encounterSteps=3;}
   function action(){
     if(battle)return;
     if(interior){
       if(player.y>=13&&player.face==='down'){interior=false;player.x=8;player.y=6;player.face='up';showToast('Back on the meadow trail.');return}
-      if(player.face==='up'&&player.y===9&&[8,10,12].includes(player.x)){
+      if(player.face==='up'&&player.y===10&&[8,10,12].includes(player.x)){
         const starter=starters[(player.x-8)/2];
-        if(starterChosen){showToast(`You already chose ${starterChosen}. ${starter.name} gives a friendly wiggle from its capsule.`);return}
-        starterChosen=starter.name;party=[{name:starter.name,level:3,xp:0,hp:starter.hp,maxHp:starter.hp,type:starter.type}];caughtCount=0;updateParty();save();ui.goal.textContent='Explore the tall grass';showToast(`${starter.name} chose you! ${starter.attacks[0]} and ${starter.attacks[1]} are ready.`);return;
+        if(starterChosen){showToast(`You already chose ${starterChosen}. ${starter.name} is still safe in its capsule.`);return}
+        starterChosen=starter.name;party=[{name:starter.name,level:3,xp:0,hp:starter.hp,maxHp:starter.hp,type:starter.type}];caughtCount=0;updateParty();save();ui.goal.textContent='Explore the tall grass';showToast(`${starter.name} is your new trail partner! Moves: ${starter.attacks[0]} and ${starter.attacks[1]}.`);return;
       }
-      if(!starterChosen)showToast('Three capsules rest on the table. Face one and press Space to meet your new partner.');else showToast('Your trail partner is ready. Head to the door to explore!');return;
+      if(!starterChosen)showToast('Stand in front of a capsule, face it, then press Space. That capsule’s creature will become your one trail partner.');else showToast(`Your trail partner is ${starterChosen}. Head to the door to explore!`);return;
     }
     let nx=player.x,ny=player.y;if(player.face==='up')ny--;if(player.face==='down')ny++;if(player.face==='left')nx--;if(player.face==='right')nx++;
     if(nx===10&&ny===5){capsules=Math.min(9,capsules+2);updateParty();save();showToast('Nana Willow left two capsules by the trail sign!');return}
