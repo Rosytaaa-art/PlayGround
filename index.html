@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#183b37" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23356e56'/%3E%3Ctext x='16' y='23' font-size='22' text-anchor='middle' fill='%23d9f09e'%3E%E2%9C%A6%3C/text%3E%3C/svg%3E" />
+  <title>Wildbound — A Pocket Creature Adventure</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Wildbound home"><span class="brand-mark">✦</span><span>WILDBOUND</span></a>
+      <div class="top-actions"><span class="save-status"><i></i> JOURNEY SAVED</span><button class="icon-button" id="sound-toggle" aria-label="Toggle sound">♫</button></div>
+    </header>
+    <section class="game-layout">
+      <aside class="side-panel left-panel">
+        <div class="trainer-card"><div class="trainer-avatar"><span>✿</span></div><div><div class="eyebrow">FIELD JOURNAL</div><strong>Rookie Ranger</strong><small>MEADOW TRAIL · DAY 01</small></div></div>
+        <div class="section-label"><span>YOUR TEAM</span><span class="team-count" id="team-count">01 / 06</span></div>
+        <div id="party-list" class="party-list"></div>
+        <div class="journal-card"><div class="journal-icon">✧</div><div class="eyebrow">TODAY'S NOTE</div><p>“A new path always starts with one brave step.”</p><div class="journal-line"></div><small>— NANA WILLOW</small></div>
+      </aside>
+      <section class="play-area">
+        <div class="scene-topline"><div><span class="location-dot"></span><span>WILLOW MEADOW</span></div><div class="weather">☀ <span>24°</span></div></div>
+        <div class="game-frame" id="game-frame">
+          <canvas id="game" width="352" height="256" aria-label="Game world. Use arrow keys or touch controls to explore."></canvas>
+          <div class="toast" id="toast">A quiet breeze rustles the meadow…</div>
+          <div class="battle-overlay hidden" id="battle-overlay">
+            <div class="battle-top"><div><span class="wild-label">WILD CREATURE</span><strong id="wild-name">Mosskin</strong><small id="wild-level">LV. 3</small></div><div class="wild-hp"><div class="hp-meta"><span>HP</span><span id="wild-hp-text">20 / 20</span></div><div class="hp-track"><i id="wild-hp-fill"></i></div></div></div>
+            <canvas id="battle-art" width="144" height="112"></canvas>
+            <div class="battle-message" id="battle-message">A wild Mosskin appeared!</div>
+            <div class="battle-actions" id="battle-actions"><button class="battle-btn primary" id="attack-btn"><span>✦</span> Spark</button><button class="battle-btn catch" id="catch-btn"><span>◉</span> Catch <b id="capsule-count">3</b></button><button class="battle-btn" id="run-btn"><span>↗</span> Run</button></div>
+            <button class="battle-btn continue-btn hidden" id="continue-btn">Continue <span>→</span></button>
+          </div>
+        </div>
+        <div class="world-footer"><div class="objective"><span class="objective-icon">◎</span><div><small>CURRENT GOAL</small><strong id="goal-text">Explore the tall grass</strong></div></div><div class="map-coords"><span class="tiny-compass">N</span><span id="coords">08 · 08</span></div></div>
+      </section>
+      <aside class="side-panel right-panel">
+        <div class="section-label"><span>RANGER KIT</span><span class="kit-spark">✦</span></div>
+        <div class="kit-card"><div class="kit-item capsule-icon">◉</div><div class="kit-info"><strong>Capture Capsules</strong><small>Ready to use</small></div><span class="item-count" id="capsule-display">03</span></div>
+        <div class="kit-card"><div class="kit-item berry-icon">✿</div><div class="kit-info"><strong>Sun Berries</strong><small>A little energy</small></div><span class="item-count">02</span></div>
+        <div class="progress-card"><div class="progress-heading"><span>MEADOW GUIDE</span><span id="guide-count">0 / 3</span></div><div class="progress-bar"><i id="guide-progress"></i></div><p>Meet the friendly creatures hiding nearby.</p></div>
+        <div class="controls-hint"><div class="hint-keyboard"><span>↑</span><span>←</span><span>↓</span><span>→</span></div><p><strong>Move</strong> with arrows or WASD<br/><strong>Interact</strong> with Space</p></div>
+      </aside>
+    </section>
+    <footer class="bottom-bar"><span>✦ <b>WILDBOUND</b> <i>·</i> THE MEADOWS ARE CALLING</span><span class="footer-tip"><kbd>SPACE</kbd> INTERACT <i>·</i> FIND YOUR NEXT FRIEND</span></footer>
+  </main>
+  <div class="mobile-controls" aria-label="Touch controls"><div class="dpad"><button data-dir="up" aria-label="Move up">▲</button><button data-dir="left" aria-label="Move left">◀</button><button data-dir="down" aria-label="Move down">▼</button><button data-dir="right" aria-label="Move right">▶</button></div><button id="touch-action" class="action-pad"><span>✦</span><small>ACTION</small></button></div>
+  <script src="game.js"></script>
+</body>
+</html>
