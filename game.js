@@ -8,28 +8,35 @@
   const W = 22, H = 16, T = 16;
   const player = { x: 8, y: 8, face: 'down', step: 0 };
   const species = [
-    { name:'Mosskin', type:'leaf', color:'#76a85f', dark:'#416d53', light:'#c7dc83', hp:24, icon:'☘' },
-    { name:'Embercub', type:'fire', color:'#e98956', dark:'#a64d46', light:'#ffd184', hp:22, icon:'✦' },
-    { name:'Dewdrop', type:'water', color:'#6aabd0', dark:'#49739e', light:'#c5e8e1', hp:20, icon:'◆' },
-    { name:'Pufflet', type:'air', color:'#c7a6ce', dark:'#826d9d', light:'#f3d9bd', hp:18, icon:'✿' }
+    { name:'Bramblehare', type:'hare', element:'leaf', color:'#83a95b', dark:'#456d4c', light:'#d4e68e', hp:25, icon:'❧', attacks:['Clover Hop','Bramble Kick'] },
+    { name:'Cindercub', type:'fox', element:'fire', color:'#e98652', dark:'#a94e43', light:'#ffd17e', hp:23, icon:'✦', attacks:['Ember Pounce','Tailflare'] },
+    { name:'Brooklet', type:'otter', element:'water', color:'#68b6c4', dark:'#3f7189', light:'#c7eee0', hp:24, icon:'◆', attacks:['Ripple Dash','Shell Splash'] },
+    { name:'Mosskin', type:'turtle', element:'leaf', color:'#76a85f', dark:'#416d53', light:'#c7dc83', hp:26, icon:'☘', attacks:['Leaf Flick','Shell Bump'] },
+    { name:'Pufflet', type:'owl', element:'air', color:'#c7a6ce', dark:'#826d9d', light:'#f3d9bd', hp:20, icon:'✿', attacks:['Gust Peep','Moonfeather'] }
   ];
+  const starters = species.slice(0,3);
   const saved = (() => { try { return JSON.parse(localStorage.getItem('wildbound-save') || '{}'); } catch { return {}; } })();
-  let party = Array.isArray(saved.party) && saved.party.length ? saved.party : [{ name:'Mosskin', level:3, xp:0, hp:24, maxHp:24, type:'leaf' }];
+  const legacyParty = Array.isArray(saved.party) ? saved.party : [];
+  let starterChosen = saved.starterChosen || (starters.some(s=>s.name===legacyParty[0]?.name) ? legacyParty[0].name : null);
+  let party = starterChosen ? (legacyParty.length ? legacyParty : []) : [];
+  if (starterChosen && !party.length) { const starter=starters.find(s=>s.name===starterChosen)||starters[0]; party=[{name:starter.name,level:3,xp:0,hp:starter.hp,maxHp:starter.hp,type:starter.type}]; starterChosen=starter.name; }
   let capsules = Number.isFinite(saved.capsules) ? saved.capsules : 3;
-  let caughtCount = Math.max(0, party.length - 1);
+  let caughtCount = Math.max(0, party.length - (starterChosen ? 1 : 0));
+  let interior = false;
   let battle = null;
   let moving = false, moveTimer = null, encounterSteps = 0;
   let toastTimer;
   const ui = {
     overlay:document.getElementById('battle-overlay'), name:document.getElementById('wild-name'), level:document.getElementById('wild-level'), hpText:document.getElementById('wild-hp-text'), hpFill:document.getElementById('wild-hp-fill'), message:document.getElementById('battle-message'), actions:document.getElementById('battle-actions'), continue:document.getElementById('continue-btn'), goal:document.getElementById('goal-text'), toast:document.getElementById('toast')
   };
-  function save() { try { localStorage.setItem('wildbound-save', JSON.stringify({ party, capsules })); } catch {} }
+  function save() { try { localStorage.setItem('wildbound-save', JSON.stringify({ party, capsules, starterChosen })); } catch {} }
   function hash(x,y){ let n=(x*374761393+y*668265263)|0;n=(n^(n>>>13))*1274126177;return (n^(n>>>16))>>>0; }
   function grassPatch(x,y){ return (x>3&&x<8&&y>3&&y<8)||(x>13&&x<19&&y>2&&y<7)||(x>11&&x<17&&y>10&&y<14)||(x>1&&x<5&&y>11&&y<15); }
   function pathTile(x,y){ return Math.abs(y-(10+Math.round(Math.sin(x*.31)*2)))<=1 || (x>=6&&x<=9&&y>=7&&y<=11) || (x>=15&&x<=17&&y>=6&&y<=11); }
   function tile(x,y){
     if(x<0||y<0||x>=W||y>=H)return 'edge';
     if((x>16&&x<21&&y>1&&y<6)||(x>17&&x<20&&y>5&&y<8))return 'water';
+    if(x===8&&y===6)return 'path';
     if(pathTile(x,y))return 'path';
     if(grassPatch(x,y))return 'tall';
     if((hash(x,y)%100)<12 && !((x>6&&x<10)&&(y>7&&y<11))) return 'tree';
@@ -76,8 +83,20 @@
     fill('#5a5547',x+4,y+16+bob,3,2);fill('#5a5547',x+9,y+16+bob,3,2);
     if(player.face==='left')fill('#403d37',x+4,y+7+bob,1,2);if(player.face==='right')fill('#403d37',x+11,y+7+bob,1,2);
   }
+  function drawInterior(){
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+      fill(y<2?'#9b634d':'#c99a69',x*16,y*16,16,16);
+      if(y>=2){fill('#b9875e',x*16,y*16+14,16,2);if((x+y)%3===0)fill('#d7ad79',x*16+3,y*16+4,3,2)}
+    }
+    fill('#e5c994',16,32,320,8);fill('#794d43',0,40,16,216);fill('#794d43',336,40,16,216);
+    fill('#745144',6*16,7*16,10*16,16);fill('#a77650',7*16,7*16,8*16,16);
+    fill('#754936',7*16,8*16,8*16,3);fill('#bc8050',7*16+3,8*16+2,8*16-6,2);fill('#754936',7*16+8,11*16,4,3);fill('#754936',14*16-8,11*16,4,3);
+    starters.forEach((sp,i)=>{const x=(7.8+i*2.15)*16,y=7.25*16;fill('#e8d8a6',x,y+1,18,3);fill(sp.color,x+2,y-6,14,7);fill('#f3eee0',x+2,y-1,14,5);fill('#d9e8d5',x+2,y-6,14,5);fill(sp.dark,x+8,y-2,3,2);fill('#fff5cc',x+5,y-5,3,2)});
+    fill('#533d38',10*16,14*16,2*16,16);fill('#d8ad75',10*16+4,14*16+3,2*16-8,12);fill('#8b6250',10*16+13,14*16+7,2,2);
+  }
   function draw(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
+    if(interior){drawInterior();drawPlayer(player.x*16,player.y*16);document.getElementById('coords').textContent='WILLOW LODGE';requestAnimationFrame(draw);return}
     let ox=Math.max(0,Math.min(W*16-canvas.width,player.x*16+8-canvas.width/2));
     let oy=Math.max(0,Math.min(H*16-canvas.height,player.y*16+8-canvas.height/2));
     // world itself is exactly canvas size, render a fixed viewport around the character
@@ -94,19 +113,20 @@
   }
   function showToast(text){ui.toast.textContent=text;ui.toast.style.opacity='1';clearTimeout(toastTimer);toastTimer=setTimeout(()=>ui.toast.style.opacity='0',2600)}
   function drawCreature(mon){
-    bctx.clearRect(0,0,144,112); const c=mon.color,d=mon.dark,l=mon.light;
+    bctx.clearRect(0,0,144,112);const c=mon.color,d=mon.dark,l=mon.light;
     bctx.fillStyle='#72975c55';bctx.fillRect(43,91,60,8);
     const p=(x,y,w,h,col)=>{bctx.fillStyle=col;bctx.fillRect(x*4,y*4,w*4,h*4)};
-    if(mon.type==='leaf'){
-      p(8,9,8,8,d);p(9,8,7,9,c);p(11,5,4,5,'#4c8456');p(12,2,2,5,'#79aa5b');p(14,3,4,2,'#8ebd65');p(13,1,3,3,l);p(8,12,2,3,l);p(15,13,1,2,'#ebd7a2');
-    } else if(mon.type==='fire'){
-      p(7,9,10,7,d);p(8,7,8,9,c);p(9,5,6,4,'#e99a61');p(6,5,3,4,d);p(6,3,3,4,'#f3b662');p(11,3,2,4,'#e4b46a');p(14,13,4,2,'#f4a35c');p(15,12,3,2,'#ffe09a');
-    } else if(mon.type==='water'){
-      p(8,7,8,10,d);p(7,8,10,7,c);p(9,5,6,4,c);p(10,3,4,3,l);p(5,9,3,3,'#83c2d1');p(16,10,3,3,'#83c2d1');p(11,13,2,2,l);
-    } else {
-      p(7,9,10,7,d);p(8,7,8,9,c);p(6,5,4,5,l);p(12,5,5,5,l);p(9,4,5,5,c);p(10,8,1,2,'#57475c');p(14,8,1,2,'#57475c');p(10,14,4,1,d);
+    if(mon.type==='hare'){
+      p(7,10,11,7,d);p(8,8,9,9,c);p(8,2,3,8,d);p(9,2,1,6,l);p(14,1,3,8,d);p(15,2,1,5,l);p(10,8,1,2,'#293c35');p(14,8,1,2,'#293c35');p(5,14,4,2,l);p(17,14,3,2,l);p(11,11,3,2,'#d7e78a');
+    }else if(mon.type==='fox'){
+      p(7,9,11,8,d);p(8,7,9,10,c);p(7,3,5,6,d);p(7,2,3,5,'#f6bd70');p(13,3,5,6,d);p(15,2,3,5,'#f6bd70');p(8,7,9,3,l);p(9,9,2,2,'#302f35');p(14,9,2,2,'#302f35');p(11,12,3,2,l);p(16,14,4,2,'#ffd17e');
+    }else if(mon.type==='otter'){
+      p(6,11,13,6,d);p(8,8,10,9,c);p(9,5,8,6,c);p(8,5,3,3,d);p(15,5,3,3,d);p(10,8,1,2,'#283f4b');p(15,8,1,2,'#283f4b');p(11,10,4,3,l);p(12,11,2,1,d);p(4,12,4,3,'#8bd2d0');p(17,12,4,2,'#8bd2d0');p(9,15,3,2,l);p(15,15,3,2,l);
+    }else if(mon.type==='turtle'){
+      p(6,11,13,6,d);p(8,10,9,7,c);p(8,6,9,7,'#8b704b');p(9,5,7,6,'#a88755');p(11,7,3,3,'#6c5940');p(17,9,4,4,c);p(18,10,1,1,'#263b31');p(7,15,3,2,l);p(15,15,3,2,l);p(5,12,3,2,l);
+    }else{
+      p(7,10,11,7,d);p(8,7,9,10,c);p(4,6,5,8,l);p(15,6,5,8,l);p(9,5,7,6,c);p(6,3,4,5,d);p(15,3,4,5,d);p(7,4,2,3,l);p(16,4,2,3,l);p(10,8,1,2,'#3c3444');p(15,8,1,2,'#3c3444');p(12,10,2,2,'#e7b45f');p(11,12,4,2,l);
     }
-    // sparkles
     p(3,5,1,1,'#fff3c1');p(20,8,1,1,'#fff3c1');p(18,3,1,1,'#fff3c1');
   }
   function updateParty(){
@@ -119,19 +139,36 @@
   function setBattleMessage(text){ui.message.textContent=text}
   function updateHp(){if(!battle)return;const pct=Math.max(0,battle.hp/battle.maxHp*100);ui.hpText.textContent=`${Math.max(0,battle.hp)} / ${battle.maxHp}`;ui.hpFill.style.width=pct+'%';ui.hpFill.className=pct<25?'critical':pct<50?'low':''}
   function beginBattle(){
-    const options=species.filter(s=>!party.some(p=>p.name===s.name));const sp=options[Math.floor(Math.random()*options.length)]||species[1];
-    const lv=2+Math.floor(Math.random()*3);battle={name:sp.name,type:sp.type,color:sp.color,dark:sp.dark,light:sp.light,icon:sp.icon,level:lv,maxHp:sp.hp+lv*2,hp:sp.hp+lv*2};
+    if(!party.length){showToast('Visit Willow Lodge to choose your trail partner first.');return}
+    const wilds=species.slice(3).filter(s=>!party.some(p=>p.name===s.name));const sp=wilds[Math.floor(Math.random()*wilds.length)]||species[3];
+    const lv=2+Math.floor(Math.random()*3);battle={name:sp.name,type:sp.type,element:sp.element,color:sp.color,dark:sp.dark,light:sp.light,icon:sp.icon,level:lv,maxHp:sp.hp+lv*2,hp:sp.hp+lv*2};
+    const starter=species.find(s=>s.name===party[0].name)||starters[0];document.getElementById('attack-one').textContent=starter.attacks[0];document.getElementById('attack-two').textContent=starter.attacks[1];
     ui.name.textContent=battle.name;ui.level.textContent='LV. '+lv;ui.overlay.classList.remove('hidden');ui.actions.classList.remove('hidden');ui.continue.classList.add('hidden');setBattleMessage(`A wild ${battle.name} appeared!`);drawCreature(battle);updateHp();
   }
   function endBattle(text,goal){setBattleMessage(text);ui.actions.classList.add('hidden');ui.continue.classList.remove('hidden');if(goal)ui.goal.textContent=goal;}
-  function wildTurn(){if(!battle)return;const dmg=2+Math.floor(Math.random()*4);const lead=party[0];lead.hp=Math.max(0,(lead.hp??lead.maxHp??24)-dmg);if(lead.hp===0)lead.hp=lead.maxHp||24;updateParty();setBattleMessage(`${battle.name} nudged ${lead.name}! It’s still eager to explore.`)}
-  function attack(){if(!battle)return;const dmg=5+Math.floor(Math.random()*6)+(party[0].level||3);battle.hp=Math.max(0,battle.hp-dmg);updateHp();if(battle.hp===0){const lead=party[0];lead.xp=(lead.xp||0)+1;if(lead.xp>=3){lead.xp=0;lead.level=(lead.level||3)+1}updateParty();save();endBattle(`${battle.name} is ready to rest. ${lead.name} gained a little experience!`,'Keep exploring the meadow');return}setBattleMessage(`${party[0].name} used Spark! ${battle.name} is looking a little tired.`);setTimeout(wildTurn,650)}
+  function wildTurn(){if(!battle||!party.length)return;const dmg=2+Math.floor(Math.random()*4);const lead=party[0];lead.hp=Math.max(0,(lead.hp??lead.maxHp??24)-dmg);if(lead.hp===0)lead.hp=lead.maxHp||24;updateParty();setBattleMessage(`${battle.name} nudged ${lead.name}! It’s still eager to explore.`)}
+  function attack(attackIndex=0){if(!battle||!party.length)return;const lead=party[0],partner=species.find(s=>s.name===lead.name)||starters[0],move=partner.attacks[attackIndex];const dmg=5+Math.floor(Math.random()*6)+(lead.level||3)+(attackIndex?2:0);battle.hp=Math.max(0,battle.hp-dmg);updateHp();if(battle.hp===0){lead.xp=(lead.xp||0)+1;if(lead.xp>=3){lead.xp=0;lead.level=(lead.level||3)+1}updateParty();save();endBattle(`${battle.name} is ready to rest. ${lead.name} grew stronger!`,'Keep exploring the meadow');return}setBattleMessage(`${lead.name} used ${move}! ${battle.name} is looking a little tired.`);setTimeout(wildTurn,650)}
   function catchCreature(){if(!battle)return;if(capsules<=0){setBattleMessage('You are out of capsules. Maybe visit Nana Willow!');return}if(party.length>=6){setBattleMessage('Your team is full. There is room for six friends.');return}capsules--;updateParty();const chance=.35+(1-battle.hp/battle.maxHp)*.5;const captured=Math.random()<chance;const name=battle.name;if(captured){party.push({name,level:battle.level,xp:0,hp:battle.maxHp,maxHp:battle.maxHp,type:battle.type});caughtCount++;updateParty();save();endBattle(`${name} joined your team! What a lovely new friend.`,'Find another friendly creature');return}setBattleMessage(`${name} wiggled free! It looks a little more tired now.`);setTimeout(()=>{if(battle){battle.hp=Math.max(1,battle.hp-3);updateHp();wildTurn()}},650)}
   function runAway(){if(!battle)return;endBattle(`You waved goodbye to ${battle.name} and continued along the trail.`,'Explore the tall grass')}
-  document.getElementById('attack-btn').addEventListener('click',attack);document.getElementById('catch-btn').addEventListener('click',catchCreature);document.getElementById('run-btn').addEventListener('click',runAway);
+  document.getElementById('attack-btn').addEventListener('click',()=>attack(0));document.getElementById('attack-two-btn').addEventListener('click',()=>attack(1));document.getElementById('catch-btn').addEventListener('click',catchCreature);document.getElementById('run-btn').addEventListener('click',runAway);
   ui.continue.addEventListener('click',()=>{battle=null;ui.overlay.classList.add('hidden');encounterSteps=0;showToast('The meadow breeze carries you onward…')});
-  function tryMove(dir){if(battle)return;let dx=0,dy=0;if(dir==='up'){dy=-1;player.face='up'}if(dir==='down'){dy=1;player.face='down'}if(dir==='left'){dx=-1;player.face='left'}if(dir==='right'){dx=1;player.face='right'}const nx=player.x+dx,ny=player.y+dy;const typ=tile(nx,ny);if(typ==='tree'||typ==='water'||typ==='edge'){showToast(typ==='water'?'The pond is too deep to cross.':'A sturdy tree blocks the way.');return}player.x=nx;player.y=ny;player.step++;if(typ==='tall'){encounterSteps++;if(encounterSteps>2&&Math.random()<.17){beginBattle();return}}if(encounterSteps>=6&&typ!=='tall')encounterSteps=3;}
-  function action(){if(battle)return;let nx=player.x,ny=player.y;if(player.face==='up')ny--;if(player.face==='down')ny++;if(player.face==='left')nx--;if(player.face==='right')nx++;if(nx===10&&ny===5){capsules=Math.min(9,capsules+2);updateParty();save();showToast('Nana Willow left two capsules by the trail sign!');return}if(nx===8&&ny===4){showToast('Nana Willow’s cottage. She’s out gathering herbs today.');return}showToast('The grass whispers softly. Keep exploring to meet a new friend!')}
+  function tryMove(dir){if(battle)return;let dx=0,dy=0;if(dir==='up'){dy=-1;player.face='up'}if(dir==='down'){dy=1;player.face='down'}if(dir==='left'){dx=-1;player.face='left'}if(dir==='right'){dx=1;player.face='right'}const nx=player.x+dx,ny=player.y+dy;if(interior){if(nx<1||nx>20||ny<3||ny>14)return;player.x=nx;player.y=ny;player.step++;return}const typ=tile(nx,ny);if(typ==='tree'||typ==='water'||typ==='edge'){showToast(typ==='water'?'The pond is too deep to cross.':'A sturdy tree blocks the way.');return}player.x=nx;player.y=ny;player.step++;if(typ==='tall'){encounterSteps++;if(encounterSteps>2&&Math.random()<.17){beginBattle();return}}if(encounterSteps>=6&&typ!=='tall')encounterSteps=3;}
+  function action(){
+    if(battle)return;
+    if(interior){
+      if(player.y>=13&&player.face==='down'){interior=false;player.x=8;player.y=6;player.face='up';showToast('Back on the meadow trail.');return}
+      if(player.face==='up'&&player.y===9&&[8,10,12].includes(player.x)){
+        const starter=starters[(player.x-8)/2];
+        if(starterChosen){showToast(`You already chose ${starterChosen}. ${starter.name} gives a friendly wiggle from its capsule.`);return}
+        starterChosen=starter.name;party=[{name:starter.name,level:3,xp:0,hp:starter.hp,maxHp:starter.hp,type:starter.type}];caughtCount=0;updateParty();save();ui.goal.textContent='Explore the tall grass';showToast(`${starter.name} chose you! ${starter.attacks[0]} and ${starter.attacks[1]} are ready.`);return;
+      }
+      if(!starterChosen)showToast('Three capsules rest on the table. Face one and press Space to meet your new partner.');else showToast('Your trail partner is ready. Head to the door to explore!');return;
+    }
+    let nx=player.x,ny=player.y;if(player.face==='up')ny--;if(player.face==='down')ny++;if(player.face==='left')nx--;if(player.face==='right')nx++;
+    if(nx===10&&ny===5){capsules=Math.min(9,capsules+2);updateParty();save();showToast('Nana Willow left two capsules by the trail sign!');return}
+    if(nx===8&&ny===5){interior=true;player.x=10;player.y=13;player.face='up';showToast(starterChosen?`Welcome back! Your partner is ${starterChosen}.`:'Welcome to Willow Lodge. Choose one trail partner.');return}
+    showToast(starterChosen?'The grass whispers softly. Keep exploring to meet a new friend!':'Find Willow Lodge beside the path and choose your first trail partner.');
+  }
   const held=new Set();function keyDown(e){const k=e.key.toLowerCase();const dirs={arrowup:'up',w:'up',arrowdown:'down',s:'down',arrowleft:'left',a:'left',arrowright:'right',d:'right'};if(dirs[k]){e.preventDefault();if(!held.has(k)){held.add(k);tryMove(dirs[k]);moveTimer=setInterval(()=>tryMove(dirs[k]),190)}return}if(k===' '||k==='enter'){e.preventDefault();action()}}
   function keyUp(e){const k=e.key.toLowerCase();if(held.has(k)){held.delete(k);clearInterval(moveTimer)}}window.addEventListener('keydown',keyDown);window.addEventListener('keyup',keyUp);window.addEventListener('blur',()=>{held.clear();clearInterval(moveTimer)});
   document.querySelectorAll('.dpad button').forEach(btn=>{const dir=btn.dataset.dir;let timer;const stop=e=>{e.preventDefault();clearInterval(timer)};btn.addEventListener('pointerdown',e=>{e.preventDefault();btn.setPointerCapture(e.pointerId);tryMove(dir);timer=setInterval(()=>tryMove(dir),190)});['pointerup','pointercancel','lostpointercapture'].forEach(ev=>btn.addEventListener(ev,stop))});document.getElementById('touch-action').addEventListener('pointerdown',e=>{e.preventDefault();action()});
